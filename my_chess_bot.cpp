@@ -6,12 +6,21 @@
 #include <ctime>     // For using std::time to seed the random number generator with the current time
 // #include <chess.hpp>
 
+
+
+
 class Chess {
 private:
     int current_player_color;      // 0 for white, 1 for black
     std::string current_fen;       // Current board position in FEN format
     std::string available_moves;   // String containing all available moves (space separated)
     std::string chosen_move;       // Chosen move which will be printed to output
+
+    // Example input:::
+    // input_to_cpp_agent:  
+    // current_player_color: 0
+    // current_fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    // available_moves: a2a3 a2a4 b2b3 b2b4 c2c3 c2c4 d2d3 d2d4 e2e3 e2e4 f2f3 f2f4 g2g3 g2g4 h2h3 h2h4 b1c3 b1a3 g1h3 g1f3
 
 public:
     // Default constructor with initialization inside the body

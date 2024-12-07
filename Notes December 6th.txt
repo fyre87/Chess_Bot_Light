@@ -1,0 +1,13 @@
+
+
+
+
+Need to get a bitmap thing going to have fast move computations
+
+
+One possible:::
+https://github.com/Disservin/chess-library?tab=readme-ov-file
+
+
+Another possible:::
+the bbc_1.2.c file is possibly much more lightweight, check the file size of adding the chess-lib

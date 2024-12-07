@@ -41,7 +41,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # print("Online: ", requests.get('http://www.google.com',timeout=5).ok)
     print("Model 1:", args.model_1)
     print("Model 2:", args.model_2)
     print("n_games:", args.n_games)
