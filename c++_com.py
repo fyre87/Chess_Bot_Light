@@ -81,6 +81,9 @@ def cpp_agent(observation):
         cwd = os.getcwd()
         ##### IMPORTANT:::: Use this commented line when you submit to kaggle
         # cwd = os.path.split(src_file_path)[0]
+        file_path = os.path.join(cwd, "my_chess_bot.out")
+        file_size = os.path.getsize(file_path)
+        print(f"The size of '{file_path}' is {file_size/1000} kilobytes.")
         agent_process = Popen(["./my_chess_bot.out"], stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=cwd)
         my_agent_process = agent_process
         atexit.register(cleanup_process)
@@ -106,11 +109,7 @@ def cpp_agent(observation):
     input_to_cpp_agent += f"{' '.join(moves)}\n"  # add third line
 
 
-    # Inputs:::
-    # input_to_cpp_agent:  
-    # 0
-    # rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-    # a2a3 a2a4 b2b3 b2b4 c2c3 c2c4 d2d3 d2d4 e2e3 e2e4 f2f3 f2f4 g2g3 g2g4 h2h3 h2h4 b1c3 b1a3 g1h3 g1f3
+
 
     # send it to the cpp agent
     agent_process.stdin.write(input_to_cpp_agent.encode())

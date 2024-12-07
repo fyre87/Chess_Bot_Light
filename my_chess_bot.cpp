@@ -1,12 +1,10 @@
-
-
 #include <iostream>  // For input (std::cin), output (std::cout), and standard I/O operations
 #include <string>    // For using std::string to store and manipulate strings
 #include <vector>    // For using std::vector to store a list of moves
 #include <sstream>   // For using std::istringstream to split space-separated strings
 #include <cstdlib>   // For using std::srand and std::rand to generate random numbers
 #include <ctime>     // For using std::time to seed the random number generator with the current time
-
+// #include <chess.hpp>
 
 class Chess {
 private:
