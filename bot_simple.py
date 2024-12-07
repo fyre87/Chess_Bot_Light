@@ -14,10 +14,16 @@ def chess_bot(obs):
     
     # 0. Parse the current board state and generate legal moves using Chessnut library
     game = Game(obs.board)
+    # print(dir(game.board))
     moves = list(game.get_moves())
-    print(game.get_fen())
-    print(str(game.board))
+    # print(game.get_fen())
+    # print(str(game.board))
     # print(game.status)
+    
+    # print(moves)
+    # print(moves[0][2:4])
+    # print(Game.xy2i(moves[0][2:4]))
+    # print(game.board.get_piece(Game.xy2i(moves[0][2:4])))
 
     # print(game.board.find_piece('p'))
     # print(game.board)
