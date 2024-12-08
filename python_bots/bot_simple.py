@@ -2,6 +2,7 @@ from Chessnut import Game
 import random
 
 def chess_bot(obs):
+    print(obs)
     """
     Simple chess bot that prioritizes checkmates, then captures, queen promotions, then randomly moves.
 

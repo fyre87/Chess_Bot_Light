@@ -11,6 +11,7 @@ int main () {
     movegen::legalmoves(moves, board);
 
     for (const auto &move : moves) {
+        std::cout << move << std::endl;
         std::cout << uci::moveToUci(move) << std::endl;
     }
 

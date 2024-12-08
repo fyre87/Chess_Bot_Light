@@ -1,7 +1,12 @@
 # first let's make sure you have internet enabled
-import requests
 from kaggle_environments import make
 import argparse
+import chess
+import chess.svg
+from importlib import import_module
+import os
+import sys
+import inspect
 
 def test_models(env, model_1, model_2, n_games):
     points = [0, 0]
@@ -40,6 +45,8 @@ if __name__ == "__main__":
     parser.add_argument('--render_game', action='store_true')
 
     args = parser.parse_args()
+
+
 
     print("Model 1:", args.model_1)
     print("Model 2:", args.model_2)
