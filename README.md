@@ -24,7 +24,9 @@ git push -u origin main
 ### Running the c++ bot:::
 Compile it:
 
-g++ my_chess_bot.cpp -o my_chess_bot.out
+g++ -std=c++17 my_chess_bot.cpp -o my_chess_bot
+
+g++ -std=c++17 -Os -ffunction-sections -fdata-sections -Wl,-dead_strip my_chess_bot.cpp -o my_chess_bot
 
 ### Running the c++ chess-library test:::
 From https://disservin.github.io/chess-library/pages/examples.html

@@ -1,12 +1,3 @@
-
-
-"""
-WP note:
-
-Source: https://www.kaggle.com/code/ashketchum/an-example-c-bot-outputs-a-randomly-chosen-move
-
-"""
-
 from subprocess import Popen, PIPE
 from threading import Thread
 from queue import Queue, Empty
@@ -36,7 +27,7 @@ def enqueue_output(out, queue):
     out.close()
 
 
-def z_cpp_agent(observation):
+def cpp_agent(observation):
     """
     a wrapper around a c++ agent.
 
@@ -75,16 +66,14 @@ def z_cpp_agent(observation):
 
     agent_process = my_agent_process
 
-    
+    ### Do not edit ###
     if agent_process is None:
         src_file_path = inspect.getfile(lambda: None)  # the path to this main.py file. https://stackoverflow.com/a/53293924
-        cwd = os.getcwd()
-        ##### IMPORTANT:::: Use this commented line when you submit to kaggle
-        # cwd = os.path.split(src_file_path)[0]
-        file_path = os.path.join(cwd, "my_chess_bot")
-        file_size = os.path.getsize(file_path)
-        print(f"The size of '{file_path}' is {file_size/1000} kilobytes.")
-        agent_process = Popen(["./my_chess_bot"], stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=cwd)
+        cwd = os.path.split(src_file_path)[0]
+
+
+        # cwd = os.getcwd() # Added by me
+        agent_process = Popen(["./my_chess_bot.out"], stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=cwd)
         my_agent_process = agent_process
         atexit.register(cleanup_process)
 
@@ -97,7 +86,8 @@ def z_cpp_agent(observation):
     # read observation, and, send inputs to our cpp agent in required format
     # Read observation:
     game = Game(observation.board)
-    # moves = list(game.get_moves())
+    moves = list(game.get_moves())
+    moves = []
     
     # Our cpp bot expects:
     # first line: current player color (0 for white, 1 for black)
@@ -106,11 +96,7 @@ def z_cpp_agent(observation):
     # Form the input to our cpp agent:
     input_to_cpp_agent = f"{0 if game.state.player == 'w' else 1}\n"  # first line
     input_to_cpp_agent += f"{game.get_fen()}\n"  # add second line
-    # input_to_cpp_agent += f"{' '.join(moves)}\n"  # add third line
-
-
-
-
+    input_to_cpp_agent += f"{' '.join(moves)}\n"  # add third line
     # send it to the cpp agent
     agent_process.stdin.write(input_to_cpp_agent.encode())
     agent_process.stdin.flush()

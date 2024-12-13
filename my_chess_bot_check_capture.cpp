@@ -9,22 +9,6 @@
 using namespace chess;
 
 
-// Piece types
-const std::array<PieceType::underlying, 6> piece_types = {
-    PieceType::underlying::PAWN,
-    PieceType::underlying::KNIGHT,
-    PieceType::underlying::BISHOP,
-    PieceType::underlying::ROOK,
-    PieceType::underlying::QUEEN,
-    PieceType::underlying::KING
-};
-
-// Colors
-const std::array<Color::underlying, 2> colors = {
-    Color::underlying::WHITE,
-    Color::underlying::BLACK
-};
-
 class Chess {
 private:
     int current_player_color;      // 0 for white, 1 for black
@@ -104,22 +88,6 @@ public:
 
 
     // Function to evaluate the board position
-    long long evaluate() {
-        long long score = 0;
-
-        // // Loop through all colors and piece types
-        for (Color color : colors) {
-            for (PieceType piece_type : piece_types) {
-                // Get the bitboard for the current piece type and color
-                Bitboard bitboard = board.pieces(piece_type, color);
-
-                // Now multiply this new bitboard with the evaluation grid for the current piece type
-                
-            }
-        }
-
-        return score;
-    }
 };
 
 int main() {

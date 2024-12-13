@@ -69,6 +69,7 @@ def play_human_vs_bot(bot_module):
     def load_last_function_from_module(module_name):
         module = import_module(module_name)
         functions = [func for name, func in inspect.getmembers(module, inspect.isfunction)]
+        print(functions)
         return functions[-1]
 
     def convert_file_to_module(file_path):
@@ -127,7 +128,7 @@ def play_human_vs_bot(bot_module):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='INPUT A MODEL')
+    parser.add_argument('--model', type=str, default='INPUT A --model ARGUMENT')
     args = parser.parse_args()
 
 
