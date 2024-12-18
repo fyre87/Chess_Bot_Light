@@ -141,6 +141,9 @@ private:
 
     Board board;  // Board object to store the current board position
 
+    const std::string logFile = "logs/log.txt";
+
+
 
     // Example input:::
     // input_to_cpp_agent:  
@@ -255,24 +258,22 @@ private:
     void sort_moves(Movelist& moves) {
         // loop through all moves
         for (auto &move : moves) {
-            // Look at checks first
             if (move_is_check(move)){
                 move.setScore(10000);
             }
             // Check for captures
             // A capture is better if it is a lower value piece capturing a higher value piece
             else if (board.isCapture(move)){
-                move.setScore(1000);
                 PieceType piece_captured = board.at(move.to()).type();
-                PieceType piece_attacker = board.at(move.from()).type();
+                PieceType piece_attacker = board.at(move.to()).type();
                 move.setScore(1000 - get_piece_value(piece_attacker) + get_piece_value(piece_captured));
-            }
-            // Check for promotions
-            else if (move.typeOf() == Move::PROMOTION){
-                move.setScore(100);
             }
             // Check for castling
             else if (move.typeOf() == Move::CASTLING){
+                move.setScore(100);
+            }
+            // Check for promotions
+            else if (move.typeOf() == Move::PROMOTION){
                 move.setScore(50);
             }
             // All other moves just look at randomly
@@ -317,8 +318,38 @@ private:
             // Make the move
             board.makeMove(move);
 
+            long long score;
             // Recursively call negamax
-            long long score = -negamax(start_time, time_limit, depth - 1, -beta, -alpha, -color, false);
+            // if (log == true || move.from() == Square(Square::underlying::SQ_F3) && move.to() == Square(Square::underlying::SQ_F7)){
+            //     score = -negamax(start_time, time_limit, depth - 1, -beta, -alpha, -color, false, log = true);
+            // }else{
+            score = -negamax(start_time, time_limit, depth - 1, -beta, -alpha, -color, false);
+            // }
+            
+            // Problem line:::
+            // depth of 12:;; human_makes(e2e4) line calculated: a7a6 f1a6 b7a6 e1f1 a6a5 f1e1 a5a4 e1f1 g7g5 f1e1 f7f6 d1h5
+            // std::string space;
+            // if (depth == 6){
+            //     space = "";
+            // }else if (depth == 5){
+            //     space = " ";
+            // }else if (depth == 4){
+            //     space = "  ";
+            // }else if (depth == 3){
+            //     space = "   ";
+            // }else if (depth == 2){
+            //     space = "    ";
+            // }else if (depth == 1){
+            //     space = "     ";
+            // }else{
+            //     space = "      ";
+            // }
+            // if (log == true){
+            //     std::ofstream logStream(logFile, std::ios::app);
+            //     logStream << space << uci::moveToUci(move) << " " << score << " " << alpha << " " << beta << std::endl;
+            //     logStream.close();
+            // }
+            
 
             // Unmake the move
             board.unmakeMove(move);
@@ -337,6 +368,11 @@ private:
             }
         }
 
+        if (is_root){
+            std::ofstream logStream(logFile, std::ios::app);
+            logStream << "GOING TO NEXT MOVE" <<std::endl;
+            logStream.close();
+        }
         return best_score;
     }
 
@@ -386,7 +422,7 @@ public:
         // Search tree search through moves until time is out
         try{
             // 
-            negamax(start_time, thinking_time, 6, -1000000000, 1000000000, current_player_color);
+            negamax(start_time, thinking_time, 4, -1000000000, 1000000000, current_player_color);
         }
         catch (...){
             // Run out of time
@@ -397,6 +433,9 @@ public:
     void print_output() const {
         std::cout << chosen_move << std::endl;
     }
+
+
+
 };
 
 int main() {

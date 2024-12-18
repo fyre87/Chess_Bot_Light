@@ -4,8 +4,6 @@
 #include <sstream>   // For using std::istringstream to split space-separated strings
 #include <cstdlib>   // For using std::srand and std::rand to generate random numbers
 #include <ctime>     // For using std::time to seed the random number generator with the current time
-#include <chrono>
-#include <fstream>
 #include "chess.hpp"
 
 using namespace chess;
@@ -119,17 +117,6 @@ const std::array<int, 64> king_rewards = {
 // };
 
 
-// This kept getting errors. Idk how to make it work
-// const std::unordered_map<PieceType, uint8_t> piece_values = {
-//     { PieceType::NONE, 1 },
-//     { PieceType::PAWN, 1 },
-//     { PieceType::KNIGHT, 3 },
-//     { PieceType::BISHOP, 4 },
-//     { PieceType::ROOK, 5 },
-//     { PieceType::QUEEN, 9 }
-// };
-
-
 
 
 class Chess {
@@ -140,7 +127,6 @@ private:
     std::string chosen_move;       // Chosen move which will be printed to output
 
     Board board;  // Board object to store the current board position
-
 
     // Example input:::
     // input_to_cpp_agent:  
@@ -174,171 +160,40 @@ private:
 
         // Loop through each bit and check if its set. If it is, add that to the evaulation score
         for (int i = 0; i < 64; i++){
-            
-            if (bitboard & (1ULL << i)) {
-                // Add positive values if white, negative if black
-                score = score + is_white*(*rewardMatrix)[i];
-            }
-            
+            // Add positive values if white, negative if black
+            score = score + is_white*(*rewardMatrix)[i];
         }
     }
 
     // Function to evaluate the board position
-    // Returns positive values if the input color is winning and negative if the input color is losing
-    long long evaluate(int color) {
+    long long evaluate() {
         long long score = 0;
 
-        // Check if game is over and why
-        auto [reason, result] = board.isGameOver();
+        // 1 or -1 depending on if white or black
+        int is_white = -1;
 
-        if (result == GameResult::NONE){
-            // 1 or -1 depending on if white or black
-            int is_white = -1;
-            // Loop through all colors and piece types
-            for (Color color_2 : colors) {
-                // Set color as white or black
-                if (color_2 == Color::underlying::WHITE) {is_white = 1;} else {is_white = -1;}
+        // // Loop through all colors and piece types
+        for (Color color : colors) {
+            // Set color as white or black
+            if (color == Color::underlying::WHITE) {is_white = 1;} else {is_white = -1;}
 
-                for (PieceType piece_type : piece_types) {
-                    // Get the bitboard for the current piece type and color
-                    std::uint64_t bitboard = board.pieces(piece_type, color_2).getBits();
+            for (PieceType piece_type : piece_types) {
+                // Get the bitboard for the current piece type and color
+                std::uint64_t bitboard = board.pieces(piece_type, color).getBits();
 
-                    // Add the value to score
-                    evaluate_helper(is_white, piece_type, bitboard, score);
-                }
-            }
-            // Score is always positive if the input color is winning and negative if losing
-            return color*score;
-        }else{
-            if (reason == GameResultReason::CHECKMATE){
-                // You just got mated!
-                return -1000000;
-            }else{
-                // Otherwise it is a draw
-                return 0;
+                // Add the value to score
+                evaluate_helper(is_white, piece_type, bitboard, score);
             }
         }
-
+        return score;
     }
 
-    // Helper function for sorting moves
-    uint8_t get_piece_value(const PieceType& piece_type){
-        if (piece_type == PieceType::underlying::NONE){
-            return 1;
-        }else if (piece_type == PieceType::underlying::PAWN){
-            return 1;
-        }else if (piece_type == PieceType::underlying::KNIGHT){
-            return 3;
-        }else if (piece_type == PieceType::underlying::BISHOP){
-            return 4;
-        }else if (piece_type == PieceType::underlying::ROOK){
-            return 5;
-        }else if (piece_type == PieceType::underlying::QUEEN){
-            return 9;
-        }else{
-            return 1;
-        }
-    }
-
-    bool move_is_check(const Move& move){
-        // Make the move
-        board.makeMove(move);
-        // Check if the move puts the king in check
-        bool is_check = board.inCheck();
-        // Unmake the move
-        board.unmakeMove(move);
-        return is_check;
-    }
-
-    // Sort the moves with moves that are likely to be better first
-    // That way we can prune off other moves quicker since we are using alpha-beta pruning
-    void sort_moves(Movelist& moves) {
-        // loop through all moves
-        for (auto &move : moves) {
-            // Look at checks first
-            if (move_is_check(move)){
-                move.setScore(10000);
-            }
-            // Check for captures
-            // A capture is better if it is a lower value piece capturing a higher value piece
-            else if (board.isCapture(move)){
-                move.setScore(1000);
-                PieceType piece_captured = board.at(move.to()).type();
-                PieceType piece_attacker = board.at(move.from()).type();
-                move.setScore(1000 - get_piece_value(piece_attacker) + get_piece_value(piece_captured));
-            }
-            // Check for promotions
-            else if (move.typeOf() == Move::PROMOTION){
-                move.setScore(100);
-            }
-            // Check for castling
-            else if (move.typeOf() == Move::CASTLING){
-                move.setScore(50);
-            }
-            // All other moves just look at randomly
-            else{
-                move.setScore(0);
-            }
-        }
-
-        // Sort the moves based on the score
-        std::sort(moves.begin(), moves.end(), [](const Move& a, const Move& b) {
-            return a.score() > b.score();
-        });
-    }
-
-    long long negamax(const std::chrono::time_point<std::chrono::steady_clock>& start_time, 
-                     const double& time_limit, 
-                     int depth,
-                     long long alpha, 
-                     long long beta, 
-                     int color,
-                     bool is_root = true) {
-
-        auto current_time = std::chrono::steady_clock::now();
-        std::chrono::duration<double> elapsed_time = current_time - start_time;
-        // Initialize variables
-        Movelist moves;
-        movegen::legalmoves(moves, board);
-
-        // If reached depth, game is over, or time is up, return the evaluation
-        if (depth == 0 || moves.size() == 0 ){//|| elapsed_time.count() > time_limit) {
-            return evaluate(color);
-        }
-
-        // Sort the moves
-        sort_moves(moves);
 
 
-        long long best_score = std::numeric_limits<long long>::min(); // Best move starts at worst possible outcome
+    // Function to do tree search
 
-        // Loop through all moves
-        for (const auto &move : moves) {
-            // Make the move
-            board.makeMove(move);
 
-            // Recursively call negamax
-            long long score = -negamax(start_time, time_limit, depth - 1, -beta, -alpha, -color, false);
 
-            // Unmake the move
-            board.unmakeMove(move);
-
-            // If the score is better than the best score, update the best score and best move
-            if (score > best_score) {
-                best_score = score;
-                if (is_root) {
-                    chosen_move = uci::moveToUci(move);
-                }
-            }
-
-            alpha = std::max(alpha, score);
-            if (alpha >= beta) {
-                break; // Alpha-beta pruning
-            }
-        }
-
-        return best_score;
-    }
 
 public:
     // Default constructor with initialization inside the body
@@ -353,9 +208,6 @@ public:
     void read_input() {
         // Read current player color (it will be 0 for white, 1 for black)
         std::cin >> current_player_color;
-
-        // Set current player color to be 1 if white, and -1 if black
-        if (current_player_color == 0) {current_player_color = 1;}else{current_player_color = -1;}
         std::cin.ignore(); // To consume the newline character
 
         // Read current FEN string
@@ -369,27 +221,35 @@ public:
 
     }
 
-    void think(){
-        std::chrono::time_point<std::chrono::steady_clock> start_time = std::chrono::steady_clock::now();
-        double thinking_time = 0.1;
+    // Function to think and set the chosen move randomly
+    void think() {
         Movelist moves;
         movegen::legalmoves(moves, board);
-
-        // Start by choosing some random move
-        if (moves.size() > 0) {
-            chosen_move = uci::moveToUci(moves[0]);
-        } else {
-            // I don't think this should ever happen
-            chosen_move = "No move available";
-        }
         
-        // Search tree search through moves until time is out
-        try{
-            // 
-            negamax(start_time, thinking_time, 6, -1000000000, 1000000000, current_player_color);
-        }
-        catch (...){
-            // Run out of time
+        if (moves.size() > 0) {
+            // Check every move for checkmate
+            for (const auto &move : moves) {
+                board.makeMove(move);
+                if (board.getHalfMoveDrawType().first == GameResultReason::CHECKMATE) {
+                    chosen_move = uci::moveToUci(move);
+                    return;
+                }
+                board.unmakeMove(move);
+            }
+
+            // Check every move for captures
+            for (const auto &move : moves) {
+                if (board.at(move.to()) != Piece::NONE && move.typeOf() != Move::CASTLING) {
+                    chosen_move = uci::moveToUci(move);
+                    return;
+                }
+            }
+
+            // Pick a random move
+            chosen_move = uci::moveToUci(moves[std::rand() % moves.size()]);
+
+        } else {
+            chosen_move = "No move available";
         }
     }
 
@@ -397,6 +257,9 @@ public:
     void print_output() const {
         std::cout << chosen_move << std::endl;
     }
+
+
+
 };
 
 int main() {

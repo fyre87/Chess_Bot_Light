@@ -5,7 +5,7 @@
 using namespace chess;
 
 
-constexpr std::array<std::uint64_t, 64> packedData = {
+constexpr std::array<std::uint64_t, 63> packedData = { 
     0x0000000000000000, 0x2328170f2d2a1401, 0x1f1f221929211507, 0x18202a1c2d261507,
     0x252e3022373a230f, 0x585b47456d65321c, 0x8d986f66a5a85f50, 0x0002000300070005,
     0xfffdfffd00060001, 0x2b1f011d20162306, 0x221c0b171f15220d, 0x1b1b131b271c1507,
@@ -33,7 +33,7 @@ int EvalWeight(int item) {
 
 int main () {
 
-    Board board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    Board board = Board("r1bqkb1r/pppppppp/8/8/2B1n3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 1");
 
     Movelist moves;
     movegen::legalmoves(moves, board);
@@ -44,12 +44,49 @@ int main () {
     // }
 
 
+    std::cout << moves.size() << std::endl;
 
-    std::cout << board.pieces(PieceType::KING, 0) << std::endl;
+
+    auto [reason, result] = board.isGameOver();
+
+
+
+
+    if (result == GameResult::NONE){
+        std::cout << "Game Result is None" << std::endl;
+    }else{
+        std::cout << "Game Result is not None" << std::endl;
+        if (reason == GameResultReason::CHECKMATE){
+            std::cout << "Checkmate" << std::endl;
+        }else{
+            std::cout << "Draw" << std::endl;
+        }
+    }
+
+    for (Move move : moves){
+        if (move.from() == Square(Square::underlying::SQ_F3) && move.to() == Square(Square::underlying::SQ_F7)){
+            std::cout << move << std::endl;
+            std::cout << "Found move" << std::endl;
+        }
+    }
+
+    // std::uint64_t bitboard = board.pieces(piece_type, color).getBits();
+    // std::cout << board.pieces(PieceType::KING, Color::underlying::WHITE).getBits() << std::endl;
+
+    // std::cout << Color::underlying::WHITE << std::endl;
+
 
 
     // board.bits()
     // board.pieces(P ieceType::KING, 0) 
+
+    // for (int i=0; i < 100; i++){
+    //     std::cout << "Weight: " << i << "\n";
+    //     std::bitset<64> x(EvalWeight(i));
+    //     std::cout << x << "\n";
+    // }
+
+
 
 
     return 0;

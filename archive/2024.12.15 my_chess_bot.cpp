@@ -141,6 +141,7 @@ private:
 
     Board board;  // Board object to store the current board position
 
+    const std::string logFile = "logs/log.txt";
 
     // Example input:::
     // input_to_cpp_agent:  
@@ -195,30 +196,30 @@ private:
             // 1 or -1 depending on if white or black
             int is_white = -1;
             // Loop through all colors and piece types
-            for (Color color_2 : colors) {
+            for (Color color : colors) {
                 // Set color as white or black
-                if (color_2 == Color::underlying::WHITE) {is_white = 1;} else {is_white = -1;}
+                if (color == Color::underlying::WHITE) {is_white = 1;} else {is_white = -1;}
 
                 for (PieceType piece_type : piece_types) {
                     // Get the bitboard for the current piece type and color
-                    std::uint64_t bitboard = board.pieces(piece_type, color_2).getBits();
+                    std::uint64_t bitboard = board.pieces(piece_type, color).getBits();
 
                     // Add the value to score
                     evaluate_helper(is_white, piece_type, bitboard, score);
                 }
             }
-            // Score is always positive if the input color is winning and negative if losing
-            return color*score;
         }else{
             if (reason == GameResultReason::CHECKMATE){
-                // You just got mated!
-                return -1000000;
+                // color is -1 for black, 1 for white
+                // If you are white and you just moved and now the board is checkmate, you won!
+                score = 1000000*color;
             }else{
                 // Otherwise it is a draw
-                return 0;
+                score = 0;
             }
         }
-
+        // Now the score is always positive if the input color is winning and negative if losing
+        return color*score;
     }
 
     // Helper function for sorting moves
@@ -255,24 +256,22 @@ private:
     void sort_moves(Movelist& moves) {
         // loop through all moves
         for (auto &move : moves) {
-            // Look at checks first
             if (move_is_check(move)){
                 move.setScore(10000);
             }
             // Check for captures
             // A capture is better if it is a lower value piece capturing a higher value piece
             else if (board.isCapture(move)){
-                move.setScore(1000);
                 PieceType piece_captured = board.at(move.to()).type();
-                PieceType piece_attacker = board.at(move.from()).type();
+                PieceType piece_attacker = board.at(move.to()).type();
                 move.setScore(1000 - get_piece_value(piece_attacker) + get_piece_value(piece_captured));
-            }
-            // Check for promotions
-            else if (move.typeOf() == Move::PROMOTION){
-                move.setScore(100);
             }
             // Check for castling
             else if (move.typeOf() == Move::CASTLING){
+                move.setScore(100);
+            }
+            // Check for promotions
+            else if (move.typeOf() == Move::PROMOTION){
                 move.setScore(50);
             }
             // All other moves just look at randomly
@@ -301,16 +300,15 @@ private:
         Movelist moves;
         movegen::legalmoves(moves, board);
 
-        // If reached depth, game is over, or time is up, return the evaluation
-        if (depth == 0 || moves.size() == 0 ){//|| elapsed_time.count() > time_limit) {
-            return evaluate(color);
-        }
-
         // Sort the moves
         sort_moves(moves);
 
+        // If reached depth, game is over, or time is up, return the evaluation
+        if (depth == 0 || moves.size() == 0 || elapsed_time.count() > time_limit) {
+            return evaluate(color);
+        }
 
-        long long best_score = std::numeric_limits<long long>::min(); // Best move starts at worst possible outcome
+        long long best_score = -10000000; // Best move starts at worst possible outcome
 
         // Loop through all moves
         for (const auto &move : moves) {
@@ -319,6 +317,29 @@ private:
 
             // Recursively call negamax
             long long score = -negamax(start_time, time_limit, depth - 1, -beta, -alpha, -color, false);
+
+            // Log the move and score
+            // if (is_root){
+            // std::ofstream logStream(logFile, std::ios::app);
+
+            // Problem line:::
+            // depth of 12:;; human_makes(e2e4) line calculated: a7a6 f1a6 b7a6 e1f1 a6a5 f1e1 a5a4 e1f1 g7g5 f1e1 f7f6 d1h5
+            // std::string space;
+            // if (depth == 4){
+            //     space = "";
+            // }else if (depth == 3){
+            //     space = " ";
+            // }else if (depth == 2){
+            //     space = "  ";
+            // }else if (depth == 1){
+            //     space = "   ";
+            // }else{
+            //     space = "    ";
+            // }
+            
+            // logStream << space << uci::moveToUci(move) << " " << score << std::endl;
+            // logStream.close();
+            // }
 
             // Unmake the move
             board.unmakeMove(move);
@@ -335,8 +356,7 @@ private:
             if (alpha >= beta) {
                 break; // Alpha-beta pruning
             }
-        }
-
+        }        
         return best_score;
     }
 
@@ -386,7 +406,7 @@ public:
         // Search tree search through moves until time is out
         try{
             // 
-            negamax(start_time, thinking_time, 6, -1000000000, 1000000000, current_player_color);
+            negamax(start_time, thinking_time, 12, -1000000000, 1000000000, current_player_color);
         }
         catch (...){
             // Run out of time
@@ -397,6 +417,9 @@ public:
     void print_output() const {
         std::cout << chosen_move << std::endl;
     }
+
+
+
 };
 
 int main() {

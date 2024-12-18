@@ -39,3 +39,6 @@ g++ -std=c++17 -O3 -march=native -o test_c test_c.cpp
 
 python test.py --model_1 bot_simple.py --n_games 1
 
+python test.py --model_1 c++_com.py --model_2 c++_com.py
+
+python test_vs_human.py --model c++_com.py

@@ -16,10 +16,15 @@ def test_models(env, model_1, model_2, n_games):
         result = env.run([model_1, model_2])
 
         # Store the result of the game
-        points[0] += result[-1][0]['reward']
-        time[0] += (10-result[-1][0]['observation']['remainingOverageTime'])/n_games
-        points[1] += result[-1][1]['reward']
-        time[1] += (10-result[-1][1]['observation']['remainingOverageTime'])/n_games
+        try:
+            points[0] += result[-1][0]['reward']
+            time[0] += (10-result[-1][0]['observation']['remainingOverageTime'])/n_games
+            points[1] += result[-1][1]['reward']
+            time[1] += (10-result[-1][1]['observation']['remainingOverageTime'])/n_games
+        except(KeyError):
+            print("Error in game", i)
+            print(result)
+
 
     print(model_1, "points:", points[0])
     print(" ", model_1, "average used time:", time[0])
