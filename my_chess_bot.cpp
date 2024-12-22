@@ -85,7 +85,7 @@ const std::array<int, 64> rook_rewards = {
     50, 50, 50, 50, 50, 50, 50, 50
 };
 
-// Queen rewards as 90 plug 1 for each square it can move beyond the minimum 21
+// Queen rewards as 90 plus 1 for each square it can move beyond the minimum 21
 const std::array<int, 64> queen_rewards = {
     90, 90, 90, 90, 90, 90, 90, 90,
     90, 92, 92, 92, 92, 92, 92, 90,
@@ -138,15 +138,25 @@ private:
     std::string current_fen;       // Current board position in FEN format
     // std::string available_moves; //SHOULDN"T NEED
     std::string chosen_move;       // Chosen move which will be printed to output
+    std::string best_move_temp;
+
+    struct KillerMove {
+        Move move;
+        long long score = -1000000000;  // Initialize with a very low score
+    };
+    KillerMove killer_moves[2][20]; // Keeps track of previously chosen moves and looks at those first
 
     Board board;  // Board object to store the current board position
+    const std::string logFile = "logs/log.txt";
 
 
     // Example input:::
     // input_to_cpp_agent:  
     // current_player_color: 0
     // current_fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-
+    void reset_killer_moves() {
+        std::fill(&killer_moves[0][0], &killer_moves[0][0] + 2 * 20, KillerMove{Move(), -1000000000});
+    }
 
     void evaluate_helper(const int& is_white, const PieceType& piece_type, const std::uint64_t bitboard, long long& score) {
         const std::array<int, 64>* rewardMatrix;
@@ -218,7 +228,6 @@ private:
                 return 0;
             }
         }
-
     }
 
     // Helper function for sorting moves
@@ -252,11 +261,17 @@ private:
 
     // Sort the moves with moves that are likely to be better first
     // That way we can prune off other moves quicker since we are using alpha-beta pruning
-    void sort_moves(Movelist& moves) {
+    void sort_moves(Movelist& moves, int& current_depth) {
         // loop through all moves
         for (auto &move : moves) {
             // Look at checks first
-            if (move_is_check(move)){
+            if (move == killer_moves[0][current_depth].move){
+                move.setScore(30000);
+            }
+            else if (move == killer_moves[1][current_depth].move){
+                move.setScore(20000);
+            }
+            else if (move_is_check(move)){
                 move.setScore(10000);
             }
             // Check for captures
@@ -289,28 +304,35 @@ private:
 
     long long negamax(const std::chrono::time_point<std::chrono::steady_clock>& start_time, 
                      const double& time_limit, 
-                     int depth,
+                     const int depth,
+                     const int max_depth,
                      long long alpha, 
                      long long beta, 
-                     int color,
-                     bool is_root = true) {
+                     const int color,
+                     const bool is_root = true) {
 
         auto current_time = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsed_time = current_time - start_time;
+        // Check time limit
+        if (elapsed_time.count() > time_limit) {
+            throw std::runtime_error("Time limit exceeded");
+        }
+
+        int current_depth = max_depth - depth;
+
         // Initialize variables
         Movelist moves;
         movegen::legalmoves(moves, board);
 
         // If reached depth, game is over, or time is up, return the evaluation
-        if (depth == 0 || moves.size() == 0 ){//|| elapsed_time.count() > time_limit) {
+        if (depth == 0 || moves.size() == 0){// || elapsed_time.count() > time_limit) {
             return evaluate(color);
         }
 
         // Sort the moves
-        sort_moves(moves);
+        sort_moves(moves, current_depth);
 
-
-        long long best_score = std::numeric_limits<long long>::min(); // Best move starts at worst possible outcome
+        long long best_score = -1000000000; // Best move starts at worst possible outcome
 
         // Loop through all moves
         for (const auto &move : moves) {
@@ -318,7 +340,8 @@ private:
             board.makeMove(move);
 
             // Recursively call negamax
-            long long score = -negamax(start_time, time_limit, depth - 1, -beta, -alpha, -color, false);
+            long long score;
+            score = -negamax(start_time, time_limit, depth - 1, max_depth, -beta, -alpha, -color, false);
 
             // Unmake the move
             board.unmakeMove(move);
@@ -327,9 +350,24 @@ private:
             if (score > best_score) {
                 best_score = score;
                 if (is_root) {
-                    chosen_move = uci::moveToUci(move);
+                    best_move_temp = uci::moveToUci(move);
                 }
             }
+
+            // Update the killer move list based on the score
+            if (score > killer_moves[0][current_depth].score) {
+                killer_moves[1][current_depth] = killer_moves[0][current_depth];  // Shift the lower move down
+                killer_moves[0][current_depth] = {move, score};           // Store the better move
+            }
+            else if (score > killer_moves[1][current_depth].score) {
+                killer_moves[1][current_depth] = {move, score};           // Store the second-best move
+            }
+
+            // if (is_root){
+            //     std::ofstream logStream(logFile, std::ios::app);
+            //     logStream << "MOVE: " << move << " Score: " << score << " alpha: " << alpha << std::endl;
+            //     logStream.close();
+            // }
 
             alpha = std::max(alpha, score);
             if (alpha >= beta) {
@@ -338,6 +376,40 @@ private:
         }
 
         return best_score;
+    }
+
+    void iterativeDeepening(const double time_limit, Color current_player_color) {
+        using clock = std::chrono::steady_clock;
+        auto start_time = clock::now();
+        int max_depth = 2;
+
+        // Reset killer moves
+        reset_killer_moves();
+
+        while (true) {
+            // Check elapsed time
+            auto current_time = clock::now();
+            std::chrono::duration<double> elapsed_time = current_time - start_time;
+            if (elapsed_time.count() > time_limit) {
+                break; // Stop searching if time is up
+            }
+
+            try {
+                // Call negamax with increasing depth
+                negamax(start_time, time_limit, max_depth, max_depth, 
+                        -1000000000,
+                         1000000000, 
+                        current_player_color, true);
+                chosen_move = best_move_temp; // Store the best move from the latest completed search
+                // std::ofstream logStream(logFile, std::ios::app);
+                // logStream << max_depth << " " << chosen_move << std::endl;
+            } catch (const std::exception& e) {
+                // Handle exceptions if needed (e.g., time limit exceeded inside negamax)
+                break;
+            }
+
+            max_depth = max_depth + 2; // Increase the search depth
+        }
     }
 
 public:
@@ -361,9 +433,6 @@ public:
         // Read current FEN string
         std::getline(std::cin, current_fen);
 
-        
-        // std::getline(std::cin, available_moves); //SHOULDN"T NEED
-
         // Update the board object with the current FEN string
         board = Board(current_fen);
 
@@ -385,8 +454,7 @@ public:
         
         // Search tree search through moves until time is out
         try{
-            // 
-            negamax(start_time, thinking_time, 6, -1000000000, 1000000000, current_player_color);
+            iterativeDeepening(thinking_time, current_player_color);
         }
         catch (...){
             // Run out of time

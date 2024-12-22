@@ -361,7 +361,11 @@ private:
                     chosen_move = uci::moveToUci(move);
                 }
             }
-
+            if (is_root){
+                std::ofstream logStream(logFile, std::ios::app);
+                logStream << "MOVE: " << move << " Score: " << score << " alpha: " << alpha << std::endl;
+                logStream.close();
+            }
             alpha = std::max(alpha, score);
             if (alpha >= beta) {
                 break; // Alpha-beta pruning

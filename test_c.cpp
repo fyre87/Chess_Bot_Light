@@ -43,33 +43,6 @@ int main () {
     //     // std::cout << uci::moveToUci(move) << std::endl;
     // }
 
-
-    std::cout << moves.size() << std::endl;
-
-
-    auto [reason, result] = board.isGameOver();
-
-
-
-
-    if (result == GameResult::NONE){
-        std::cout << "Game Result is None" << std::endl;
-    }else{
-        std::cout << "Game Result is not None" << std::endl;
-        if (reason == GameResultReason::CHECKMATE){
-            std::cout << "Checkmate" << std::endl;
-        }else{
-            std::cout << "Draw" << std::endl;
-        }
-    }
-
-    for (Move move : moves){
-        if (move.from() == Square(Square::underlying::SQ_F3) && move.to() == Square(Square::underlying::SQ_F7)){
-            std::cout << move << std::endl;
-            std::cout << "Found move" << std::endl;
-        }
-    }
-
     // std::uint64_t bitboard = board.pieces(piece_type, color).getBits();
     // std::cout << board.pieces(PieceType::KING, Color::underlying::WHITE).getBits() << std::endl;
 
@@ -86,7 +59,39 @@ int main () {
     //     std::cout << x << "\n";
     // }
 
+    // Evals base for each type. 
+    for (int pt = 0; pt < 7; pt++){
+        std::cout << "Piece type " << pt << ": " << (short)EvalWeight(112 + pt) << std::endl;
+    }
 
+    // Additional evals by square:
+    for (int pt = 0; pt < 1; pt++) // or 7, depending on your code
+    {
+        for (int sq = 0; sq < 64; sq++)
+        {
+            // We want the midgame and endgame PST for "pt" on "sq" as White:
+            long index  = (long)(pt * 64 + (sq >> 3) ^ 0);
+            int  shift  = (int)((0x01455410 >> (sq * 4)) * 8); 
+            long masked = (long)(packedData[index] >> shift) & 0xFF00FF;
+
+            // Real code multiplies by 24 times some linear interpolation of early game and end game. 
+            int mgWhite = (short)(masked);
+            int egWhite = (masked / 0x10000);
+            // std::cout << sq << " " << mgWhite << std::endl;
+            std::cout << sq << " " << egWhite << std::endl;
+
+            // std::cout << mgWhite << std::endl;
+            // std::cout << egWhite << std::endl;
+
+            // Similarly for Black:
+            // index  = (long)(pt * 64 + (sq >> 3) ^ 0b111);
+            // masked = (long)(packedData[index] >> shift) & 0xFF00FF;
+            // int mgBlack = (int)(masked & 0xFF);
+            // int egBlack = (int)((masked >> 8) & 0xFF);
+
+            // Save mgWhite, egWhite, mgBlack, egBlack to your own arrays.
+        }
+    }
 
 
     return 0;

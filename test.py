@@ -21,9 +21,10 @@ def test_models(env, model_1, model_2, n_games):
             time[0] += (10-result[-1][0]['observation']['remainingOverageTime'])/n_games
             points[1] += result[-1][1]['reward']
             time[1] += (10-result[-1][1]['observation']['remainingOverageTime'])/n_games
-        except(KeyError):
+        except(Exception):
             print("Error in game", i)
-            print(result)
+            print("Likely the bot timed out")
+            print(result[-1])
 
 
     print(model_1, "points:", points[0])
