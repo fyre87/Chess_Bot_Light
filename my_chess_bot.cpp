@@ -27,7 +27,40 @@ const std::array<Color::underlying, 2> colors = {
     Color::underlying::BLACK
 };
 
-const std::array<int, 64> white_pawn_rewards = {
+// Goes like::
+// a1 b1 c1 d1 e1 f1 g1 h1
+// a2 b2 c2 d2 e2 f2 g2 h2
+// ...
+// a7 b7 c7 d7 e7 f7 g7 h7
+// a8 b8 c8 d8 e8 f8 g8 h8
+
+// Non king half pawn rewards end game
+// const std::array<int, 64> NKH_pawn_rewards_EG = {
+//     0, 0, 0, 0, 0, 0, 0, 0, 
+//     42, 45, 40, 35, 35, 40, 45, 42, 
+//     33, 41, 31, 31, 31, 31, 41, 33, 
+//     38, 45, 32, 24, 24, 32, 45, 38, 
+//     58, 55, 46, 37, 37, 46, 55, 58, 
+//     101, 109, 91, 88, 88, 91, 109, 101, 
+//     168, 165, 152, 141, 141, 152, 165, 168, 
+//     7, 0, 2, 0, 0, 2, 0, 7
+// };
+
+// // King half pawn rewards end game
+// const std::array<int, 64, KH_pawn_rewards_EG = {
+//     0, 138, 32, 0, 0, 32, 138, 0, 
+//     8, 65, 16, 0, 0, 16, 65, 8, 
+//     4, 69, 8, 1, 1, 8, 69, 4, 
+//     128, 128, 129, 5, 5, 129, 128, 128, 
+//     32, 70, 18, 33, 33, 18, 70, 32, 
+//     6, 32, 128, 16, 16, 128, 32, 6, 
+//     34, 16, 192, 3, 3, 192, 16, 34, 
+//     68, 4, 4, 0, 0, 4, 4, 68
+// }
+
+
+
+const std::array<int, 64> black_pawn_rewards = {
     0, 0, 0, 0, 0, 0, 0, 0, 
     15, 15, 15, 15, 15, 15, 15, 15,
     14, 14, 14, 14, 14, 14, 14, 14,
@@ -38,7 +71,7 @@ const std::array<int, 64> white_pawn_rewards = {
     0, 0, 0, 0, 0, 0, 0, 0
 };
 
-const std::array<int, 64> black_pawn_rewards = {
+const std::array<int, 64> white_pawn_rewards = {
     0, 0, 0, 0, 0, 0, 0, 0, 
     10, 10, 10, 10, 10, 10, 10, 10,
     11, 11, 11, 11, 11, 11, 11, 11,
@@ -136,7 +169,7 @@ class Chess {
 private:
     int current_player_color;      // 0 for white, 1 for black
     std::string current_fen;       // Current board position in FEN format
-    // std::string available_moves; //SHOULDN"T NEED
+    std::string available_moves; //SHOULDN"T NEED
     std::string chosen_move;       // Chosen move which will be printed to output
     std::string best_move_temp;
 
@@ -184,12 +217,10 @@ private:
 
         // Loop through each bit and check if its set. If it is, add that to the evaulation score
         for (int i = 0; i < 64; i++){
-            
             if (bitboard & (1ULL << i)) {
                 // Add positive values if white, negative if black
                 score = score + is_white*(*rewardMatrix)[i];
             }
-            
         }
     }
 
@@ -313,7 +344,7 @@ private:
 
         auto current_time = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsed_time = current_time - start_time;
-        // Check time limit
+        // Check time limit 
         if (elapsed_time.count() > time_limit) {
             throw std::runtime_error("Time limit exceeded");
         }
@@ -417,7 +448,7 @@ public:
     Chess() {
         current_player_color = 0;
         current_fen = "";
-        // available_moves = "";
+        available_moves = "";
         chosen_move = "";
     }
 
@@ -425,13 +456,15 @@ public:
     void read_input() {
         // Read current player color (it will be 0 for white, 1 for black)
         std::cin >> current_player_color;
-
         // Set current player color to be 1 if white, and -1 if black
         if (current_player_color == 0) {current_player_color = 1;}else{current_player_color = -1;}
         std::cin.ignore(); // To consume the newline character
 
         // Read current FEN string
         std::getline(std::cin, current_fen);
+
+        // Read available moves (space-separated)
+        std::getline(std::cin, available_moves);
 
         // Update the board object with the current FEN string
         board = Board(current_fen);

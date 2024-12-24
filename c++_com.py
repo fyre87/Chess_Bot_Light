@@ -81,10 +81,10 @@ def z_cpp_agent(observation):
         cwd = os.getcwd()
         ##### IMPORTANT:::: Use this commented line when you submit to kaggle
         # cwd = os.path.split(src_file_path)[0]
-        file_path = os.path.join(cwd, "my_chess_bot")
+        file_path = os.path.join(cwd, "my_chess_bot.out")
         file_size = os.path.getsize(file_path)
         print(f"The size of '{file_path}' is {file_size/1000} kilobytes.")
-        agent_process = Popen(["./my_chess_bot"], stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=cwd)
+        agent_process = Popen(["./my_chess_bot.out"], stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=cwd)
         my_agent_process = agent_process
         atexit.register(cleanup_process)
 
@@ -97,7 +97,7 @@ def z_cpp_agent(observation):
     # read observation, and, send inputs to our cpp agent in required format
     # Read observation:
     game = Game(observation.board)
-    # moves = list(game.get_moves())
+    moves = list(game.get_moves())
     
     # Our cpp bot expects:
     # first line: current player color (0 for white, 1 for black)
@@ -106,7 +106,7 @@ def z_cpp_agent(observation):
     # Form the input to our cpp agent:
     input_to_cpp_agent = f"{0 if game.state.player == 'w' else 1}\n"  # first line
     input_to_cpp_agent += f"{game.get_fen()}\n"  # add second line
-    # input_to_cpp_agent += f"{' '.join(moves)}\n"  # add third line
+    input_to_cpp_agent += f"{' '.join(moves)}\n"  # add third line
 
 
 

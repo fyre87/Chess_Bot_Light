@@ -5,7 +5,7 @@
 using namespace chess;
 
 
-constexpr std::array<std::uint64_t, 63> packedData = { 
+constexpr std::array<std::uint64_t, 63> packedData = {
     0x0000000000000000, 0x2328170f2d2a1401, 0x1f1f221929211507, 0x18202a1c2d261507,
     0x252e3022373a230f, 0x585b47456d65321c, 0x8d986f66a5a85f50, 0x0002000300070005,
     0xfffdfffd00060001, 0x2b1f011d20162306, 0x221c0b171f15220d, 0x1b1b131b271c1507,
@@ -38,6 +38,9 @@ int main () {
     Movelist moves;
     movegen::legalmoves(moves, board);
 
+    std::uint64_t bitboard = board.pieces(PieceType::underlying::PAWN, Color::underlying::WHITE).getBits();
+
+    std::cout << bitboard << std::endl;
     // for (const auto &move : moves) {
     //     // std::cout << move << std::endl;
     //     // std::cout << uci::moveToUci(move) << std::endl;
@@ -48,7 +51,12 @@ int main () {
 
     // std::cout << Color::underlying::WHITE << std::endl;
 
-
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            std::cout << ((bitboard >> (i * 8 + j)) & 1) << " ";
+        }
+        std::cout << std::endl;
+    }
 
     // board.bits()
     // board.pieces(P ieceType::KING, 0) 
@@ -59,38 +67,49 @@ int main () {
     //     std::cout << x << "\n";
     // }
 
+    // Piece is half 
     // Evals base for each type. 
     for (int pt = 0; pt < 7; pt++){
         std::cout << "Piece type " << pt << ": " << (short)EvalWeight(112 + pt) << std::endl;
+        std::cout << "EG: " << pt << ": " << (EvalWeight(112 + pt)/ 0x10000) << std::endl;
     }
 
-    // Additional evals by square:
-    for (int pt = 0; pt < 1; pt++) // or 7, depending on your code
+    // Typically 6 piece types: 0..5 (Pawn, Knight, Bishop, Rook, Queen, King).
+    // If your engine uses 0..6 for some reason, adjust accordingly.
+    for (int pieceType = 0; pieceType < 6; pieceType++)
     {
-        for (int sq = 0; sq < 64; sq++)
+        // Toggle to 'false' if you want to see black’s mirrored PST
+        bool pieceIsWhite = true;
+        
+        // Print row by row. If you prefer rank 8 -> rank 1 top-down, loop rank = 7 down to 0.
+        for (int rank = 7; rank >= 0; rank--)
         {
-            // We want the midgame and endgame PST for "pt" on "sq" as White:
-            long index  = (long)(pt * 64 + (sq >> 3) ^ 0);
-            int  shift  = (int)((0x01455410 >> (sq * 4)) * 8); 
-            long masked = (long)(packedData[index] >> shift) & 0xFF00FF;
+            for (int file = 0; file < 8; file++)
+            {
+                int sqIndex = rank * 8 + file;
 
-            // Real code multiplies by 24 times some linear interpolation of early game and end game. 
-            int mgWhite = (short)(masked);
-            int egWhite = (masked / 0x10000);
-            // std::cout << sq << " " << mgWhite << std::endl;
-            std::cout << sq << " " << egWhite << std::endl;
+                // This matches: pieceType * 64 + (sqIndex >> 3) ^ (pieceIsWhite ? 0 : 0b111)
+                int arrayIndex = pieceType * 64 + ((sqIndex >> 3) ^ (pieceIsWhite ? 0 : 0b111));
 
-            // std::cout << mgWhite << std::endl;
-            // std::cout << egWhite << std::endl;
+                // Next, compute the shift:
+                // (0x01455410 >> (sqIndex * 4)) & 0xF  gives us a nibble, then multiply by 8
+                int nibble = (int)((0x01455410UL >> (sqIndex * 4)) & 0xF);
+                int shiftAmount = nibble * 8;
 
-            // Similarly for Black:
-            // index  = (long)(pt * 64 + (sq >> 3) ^ 0b111);
-            // masked = (long)(packedData[index] >> shift) & 0xFF00FF;
-            // int mgBlack = (int)(masked & 0xFF);
-            // int egBlack = (int)((masked >> 8) & 0xFF);
 
-            // Save mgWhite, egWhite, mgBlack, egBlack to your own arrays.
+                // Extract mg/eg from packedData:
+                uint64_t chunk = packedData[arrayIndex];
+                uint val   = (uint)((chunk >> shiftAmount) & 0xFF00FF);
+                
+                int mg = (int)(val & 0xFF);         // middle-game
+                int eg = (int)((val >> 16) & 0xFF); // endgame
+
+                // Print mg, eg pair
+                std::cout << "({" << mg<< ","<<eg<<"}) ";
+            }
+            std::cout<<std::endl;
         }
+        std::cout<<std::endl;
     }
 
 

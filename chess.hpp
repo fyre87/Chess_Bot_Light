@@ -33,7 +33,7 @@ VERSION: 0.6.77
 
 
 #include <functional>
-#include <utility>
+#include <utility> 
 
 
 #include <cstdint>
@@ -63,7 +63,7 @@ namespace chess {
 
 class Color {
    public:
-    enum class underlying : std::int8_t { WHITE = 0, BLACK = 1, NONE = -1 };
+    enum class underlying : std::int8_t { WHITE = 0, BLACK = 1, NONE = -1 }; 
 
     constexpr Color() : color(underlying::NONE) {}
     constexpr Color(underlying c) : color(c) {
@@ -4673,7 +4673,7 @@ class uci {
             return Move::NO_MOVE;
         }
 
-        static constexpr auto pt_to_pgt = [](PieceType pt) { return 1 << (pt); };
+        static constexpr auto pt_to_pgt = [](PieceType pt) { return 1 << static_cast<int>(pt); };
         const SanMoveInformation info   = parseSanInfo<PEDANTIC>(san);
 
         if (info.capture) {

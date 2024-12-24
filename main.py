@@ -70,8 +70,6 @@ def cpp_agent(observation):
     if agent_process is None:
         src_file_path = inspect.getfile(lambda: None)  # the path to this main.py file. https://stackoverflow.com/a/53293924
         cwd = os.path.split(src_file_path)[0]
-
-
         # cwd = os.getcwd() # Added by me
         agent_process = Popen(["./my_chess_bot.out"], stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=cwd)
         my_agent_process = agent_process
@@ -87,7 +85,6 @@ def cpp_agent(observation):
     # Read observation:
     game = Game(observation.board)
     moves = list(game.get_moves())
-    moves = []
     
     # Our cpp bot expects:
     # first line: current player color (0 for white, 1 for black)
