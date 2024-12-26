@@ -1,4 +1,4 @@
-## Chess bot!
+# Lightweight Chess Bot Programming
 
 ### Base code for Kaggle competition here
 ```https://www.kaggle.com/competitions/fide-google-efficiency-chess-ai-challenge```
