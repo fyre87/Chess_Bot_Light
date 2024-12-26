@@ -1,5 +1,12 @@
 ## Chess bot!
 
+### Base code for Kaggle competition here
+```https://www.kaggle.com/competitions/fide-google-efficiency-chess-ai-challenge```
+
+Implements iterative deepening approach using c++ in ```my_chess_bot.cpp```. 
+
+Uses main.py to communicate in python between competition ai and c++ agent. 
+
 ### Running the c++ bot:::
 Compile it:
 
