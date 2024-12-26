@@ -27,38 +27,6 @@ const std::array<Color::underlying, 2> colors = {
     Color::underlying::BLACK
 };
 
-// Goes like::
-// a1 b1 c1 d1 e1 f1 g1 h1
-// a2 b2 c2 d2 e2 f2 g2 h2
-// ...
-// a7 b7 c7 d7 e7 f7 g7 h7
-// a8 b8 c8 d8 e8 f8 g8 h8
-
-// Non king half pawn rewards end game
-// const std::array<int, 64> NKH_pawn_rewards_EG = {
-//     0, 0, 0, 0, 0, 0, 0, 0, 
-//     42, 45, 40, 35, 35, 40, 45, 42, 
-//     33, 41, 31, 31, 31, 31, 41, 33, 
-//     38, 45, 32, 24, 24, 32, 45, 38, 
-//     58, 55, 46, 37, 37, 46, 55, 58, 
-//     101, 109, 91, 88, 88, 91, 109, 101, 
-//     168, 165, 152, 141, 141, 152, 165, 168, 
-//     7, 0, 2, 0, 0, 2, 0, 7
-// };
-
-// // King half pawn rewards end game
-// const std::array<int, 64, KH_pawn_rewards_EG = {
-//     0, 138, 32, 0, 0, 32, 138, 0, 
-//     8, 65, 16, 0, 0, 16, 65, 8, 
-//     4, 69, 8, 1, 1, 8, 69, 4, 
-//     128, 128, 129, 5, 5, 129, 128, 128, 
-//     32, 70, 18, 33, 33, 18, 70, 32, 
-//     6, 32, 128, 16, 16, 128, 32, 6, 
-//     34, 16, 192, 3, 3, 192, 16, 34, 
-//     68, 4, 4, 0, 0, 4, 4, 68
-// }
-
-
 
 const std::array<int, 64> black_pawn_rewards = {
     0, 0, 0, 0, 0, 0, 0, 0, 
@@ -141,27 +109,6 @@ const std::array<int, 64> king_rewards = {
     1, 1, 1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1
 };
-
-// std::unordered_map<std::uint8_t, std::array<int, 64>> rewardMatrixMap = {
-//     { PieceType::underlying::PAWN, white_pawn_rewards },
-//     { PieceType::underlying::KNIGHT, knight_rewards },
-//     { PieceType::underlying::BISHOP, bishop_rewards },
-//     { PieceType::underlying::ROOK, rook_rewards },
-//     { PieceType::underlying::QUEEN, queen_rewards },
-//     { PieceType::underlying::KING, king_rewards }
-// };
-
-
-// This kept getting errors. Idk how to make it work
-// const std::unordered_map<PieceType, uint8_t> piece_values = {
-//     { PieceType::NONE, 1 },
-//     { PieceType::PAWN, 1 },
-//     { PieceType::KNIGHT, 3 },
-//     { PieceType::BISHOP, 4 },
-//     { PieceType::ROOK, 5 },
-//     { PieceType::QUEEN, 9 }
-// };
-
 
 
 
