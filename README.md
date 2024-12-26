@@ -4,7 +4,7 @@ Code built for the Kaggle Competition [here](https://www.kaggle.com/competitions
 
 This code Implements iterative deepening approach using c++ in ```my_chess_bot.cpp```. 
 
-Uses main.py to communicate in python between competition ai and c++ agent. 
+Uses ```main.py``` to communicate in python between competition ai and c++ agent. 
 
 Good sources for learning about the methods:::
 - [Chess Programming Wiki](https://www.chessprogramming.org/Main_Page)
