@@ -1,6 +1,6 @@
 # Lightweight Chess Bot Programming
 
-Code build for the Kaggle Competition [here](https://www.kaggle.com/competitions/fide-google-efficiency-chess-ai-challenge)
+Code built for the Kaggle Competition [here](https://www.kaggle.com/competitions/fide-google-efficiency-chess-ai-challenge)
 
 This code Implements iterative deepening approach using c++ in ```my_chess_bot.cpp```. 
 
